@@ -1,3 +1,4 @@
+
 # Junior Data Engineer ETL Demo (Runnable)
 
 This project is a **proof-of-work** ETL pipeline you can run locally to demonstrate junior data engineering fundamentals:
@@ -88,3 +89,7 @@ Local component → Typical AWS equivalent
 - `pipeline/*.py` → **Glue job** (Spark or Python shell) / **Lambda** for small tasks
 - `data/output/warehouse.db` → **Redshift** / **Snowflake**
 - `logs + counts` → **CloudWatch Logs + Metrics**
+=======
+# data-engineering-etl-demo
+Runnable end-to-end ETL pipeline demonstrating data ingestion, validation, transformation, star-schema modeling, analytics queries, and testing.
+>>>>>>> b46be3c7a46d28f561d3eeb46908cf01ecb6cd0e
