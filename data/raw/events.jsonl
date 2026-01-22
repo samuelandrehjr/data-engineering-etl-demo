@@ -1,0 +1,6 @@
+{"event_id":"e1","ts":"2026-01-05T14:02:10Z","user_id":17,"event":"page_view","page":"/"}
+{"event_id":"e2","ts":"BAD_TIME","user_id":"17","event":"signup"}
+{"event_id":"e2","ts":"2026-01-05T14:02:30Z","user_id":"17","event":"signup"}
+{"event_id":"e3","ts":"2026-01-05T14:04:02Z","user_id":null,"event":"purchase","amount":"19.99"}
+{"event_id":"e4","ts":"2026-01-06T10:10:00Z","user_id":21,"event":"page_view","page":"/pricing"}
+{"event_id":"e5","ts":"2026-01-06T10:11:20Z","user_id":21,"event":"purchase","amount":5}

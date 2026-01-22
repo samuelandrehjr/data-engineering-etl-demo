@@ -1,0 +1,12 @@
+{
+  "run_utc": "2026-01-20T06:38:08+00:00",
+  "raw_lines": 6,
+  "ingest_good": 5,
+  "ingest_bad": 1,
+  "transform_invalid_event_type": 0,
+  "loaded_rows": 5,
+  "dedup_removed": 0,
+  "null_user_id": 1,
+  "rejected_total": 1,
+  "reject_rate": 0.16666666666666666
+}
