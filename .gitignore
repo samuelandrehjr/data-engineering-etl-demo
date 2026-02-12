@@ -1,0 +1,58 @@
+# ===============================
+# Python / Virtual Environment
+# ===============================
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+.mypy_cache/
+
+# ===============================
+# OS / Editor
+# ===============================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ===============================
+# Environment / Secrets
+# ===============================
+.env
+.env.*
+
+# ===============================
+# Large Files / Raw Data
+# ===============================
+archive.zip
+data/raw/
+data/staging/
+
+# Kaggle incoming zips specifically
+data/raw/ecommerce/kaggle/_incoming/*.zip
+
+# ===============================
+# Warehouse Outputs
+# ===============================
+data/output/
+
+# Re-include analytics exports for portfolio proof
+!data/output/exports/
+!data/output/exports/*.csv
+
+# ===============================
+# Databases / Intermediate Files
+# ===============================
+*.db
+*.sqlite
+*.jsonl
+
+# ===============================
+# Build / Distribution
+# ===============================
+build/
+dist/
+*.egg-info/

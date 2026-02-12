@@ -37,6 +37,7 @@ def read_events_jsonl(path: str | Path) -> IngestResult:
     bad: List[Dict] = []
 
     with path.open("r", encoding="utf-8") as f:
+        i = 0
         for i, line in enumerate(f, start=1):
             line = line.strip()
             if not line:

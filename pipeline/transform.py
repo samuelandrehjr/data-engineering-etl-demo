@@ -13,25 +13,23 @@ def transform(events: pd.DataFrame, users: pd.DataFrame) -> Tuple[pd.DataFrame, 
 
     Rules:
       - De-dup by event_id (keep latest timestamp)
-      - Cast user_id, amount
+      - Cast amount
       - Enforce allowed event types (quarantine invalid)
       - Derive event_date, event_hour
       - Left join users dimension
 
     Returns:
-      (clean_events_df, bad_records_list)
+      (clean_events_df, bad_records_list, metrics_dict)
     """
     if events.empty:
-        return events, [], {"dedup_removed":0, "null_user_id": 0, "invalid_event_type": 0, "rows_out": 0}
+        return events, [], {"dedup_removed": 0, "null_user_id": 0, "invalid_event_type": 0, "rows_out": 0}
 
     bad_records: List[Dict] = []
-
     events = events.copy()
 
     # Ensure ts is datetime
     events["ts"] = pd.to_datetime(events["ts"], utc=True, errors="coerce")
 
-    # Normalize event type (lowercase/trim)
     # Normalize event type (lowercase/trim + canonicalization)
     if "event" in events.columns:
         events["event"] = (
@@ -50,7 +48,6 @@ def transform(events: pd.DataFrame, users: pd.DataFrame) -> Tuple[pd.DataFrame, 
         })
     else:
         events["event"] = ""
-
 
     # Identify invalid event types
     invalid_mask = ~events["event"].isin(list(ALLOWED_EVENTS))
@@ -78,10 +75,16 @@ def transform(events: pd.DataFrame, users: pd.DataFrame) -> Tuple[pd.DataFrame, 
     dedup_removed = before - len(events)
 
     # Type normalization
+    # IMPORTANT: Keep user_id as TEXT for real-world IDs (order IDs, UUIDs, etc.)
     if "user_id" in events.columns:
-        events["user_id"] = pd.to_numeric(events["user_id"], errors="coerce").astype("Int64")
+        events["user_id"] = (
+            events["user_id"]
+            .astype(str)
+            .str.strip()
+            .replace({"": pd.NA, "nan": pd.NA, "None": pd.NA, "<NA>": pd.NA})
+        )
     else:
-        events["user_id"] = pd.Series([pd.NA] * len(events), dtype="Int64")
+        events["user_id"] = pd.NA
 
     if "amount" in events.columns:
         events["amount"] = pd.to_numeric(events["amount"], errors="coerce")
@@ -91,6 +94,11 @@ def transform(events: pd.DataFrame, users: pd.DataFrame) -> Tuple[pd.DataFrame, 
     # Derived columns
     events["event_date"] = events["ts"].dt.date.astype(str)
     events["event_hour"] = events["ts"].dt.hour.astype("Int64")
+
+    # Make sure users user_id type matches for join
+    users = users.copy()
+    if "user_id" in users.columns:
+        users["user_id"] = users["user_id"].astype(str).str.strip()
 
     out = events.merge(users, on="user_id", how="left")
     null_user_id = int(out["user_id"].isna().sum())
@@ -102,12 +110,11 @@ def transform(events: pd.DataFrame, users: pd.DataFrame) -> Tuple[pd.DataFrame, 
         null_user_id,
         invalid_count,
     )
-    
+
     metrics = {
         "dedup_removed": int(dedup_removed),
         "null_user_id": int(null_user_id),
         "invalid_event_type": int(invalid_count),
         "rows_out": int(len(out)),
     }
-    return out, bad_records, metrics 
-
+    return out, bad_records, metrics

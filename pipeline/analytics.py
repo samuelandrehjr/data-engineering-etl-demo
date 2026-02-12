@@ -3,7 +3,6 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 
@@ -53,6 +52,22 @@ def query_revenue(conn: sqlite3.Connection) -> pd.DataFrame:
     return _read_sql(conn, sql)
 
 
+def query_international_revenue(conn: sqlite3.Connection) -> pd.DataFrame:
+    """
+    International Revenue (by day): sum(gross_amt) per day from fact_international_sales.
+    Uses substr(ts,1,10) to bucket by date because ts is stored as ISO8601 text.
+    """
+    sql = """
+    SELECT
+      substr(ts, 1, 10) AS event_date,
+      ROUND(SUM(COALESCE(gross_amt, 0)), 2) AS intl_revenue
+    FROM fact_international_sales
+    GROUP BY 1
+    ORDER BY 1;
+    """
+    return _read_sql(conn, sql)
+
+
 def query_event_counts(conn: sqlite3.Connection) -> pd.DataFrame:
     """
     Event volume by type per day.
@@ -67,7 +82,7 @@ def query_event_counts(conn: sqlite3.Connection) -> pd.DataFrame:
     JOIN dim_event_types e ON e.event_type_id = f.event_type_id
     GROUP BY f.event_date, e.event
     ORDER BY f.event_date, e.event;
-    """   
+    """
     return _read_sql(conn, sql)
 
 
@@ -99,7 +114,7 @@ def query_funnel(conn: sqlite3.Connection) -> pd.DataFrame:
       END AS signup_to_purchase_rate
     FROM daily
     ORDER BY event_date;
-    """    
+    """
     return _read_sql(conn, sql)
 
 
@@ -119,6 +134,19 @@ def run_all(db_path: Path, export_dir: Path) -> list[QueryResult]:
 
         revenue = query_revenue(conn)
         results.append(QueryResult("Revenue", revenue, export_query(revenue, export_dir, "revenue.csv")))
+
+        # International Revenue (safe: if table missing, return empty df + still export a csv)
+        try:
+            intl_rev = query_international_revenue(conn)
+        except sqlite3.OperationalError:
+            intl_rev = pd.DataFrame(columns=["event_date", "intl_revenue"])
+        results.append(
+            QueryResult(
+                "InternationalRevenue",
+                intl_rev,
+                export_query(intl_rev, export_dir, "international_revenue.csv"),
+            )
+        )
 
         event_counts = query_event_counts(conn)
         results.append(QueryResult("EventCounts", event_counts, export_query(event_counts, export_dir, "event_counts.csv")))
