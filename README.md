@@ -1,95 +1,101 @@
+# Junior Data Engineer ETL Warehouse (Version 2 – Multi-Source + International Analytics)
 
-# Junior Data Engineer ETL Demo (Runnable)
+This project is a **production-style, end-to-end ETL warehouse pipeline** demonstrating junior-to-intermediate data engineering fundamentals.
 
-This project is a **proof-of-work** ETL pipeline you can run locally to demonstrate junior data engineering fundamentals:
+It began as a single-source e-commerce pipeline and was upgraded to support **multi-source ingestion, international sales modeling, and expanded analytics exports**.
 
-- Ingest raw **JSON Lines** + **CSV**
+---
+
+## What This Project Demonstrates
+
+### Core Data Engineering Skills
+
+- Ingest raw **JSON Lines + CSV**
 - Validate and quarantine bad records
-- Transform + enrich data (de-dup, type casting, derived columns)
-- Load into **SQLite** (warehouse stand-in)
-- Run **SQL analytics queries**
-- Unit tests + minimal CI
+- Transform + enrich data
+  - Type casting
+  - De-duplication
+  - Derived columns
+  - Date key generation
+- Load into a **star-schema warehouse (SQLite)**
+- Build indexed fact + dimension tables
+- Generate analytics-ready exports
+- Data quality reporting
+- Modular pipeline design
+- Unit testing
+- Git-based version control
 
-> Why SQLite? It keeps everything runnable on any laptop while still showing the same SQL patterns you’d use in Redshift/Snowflake.
+---
 
-## Quickstart
+# Architecture Overview
 
-### 1) Create a virtual environment
+## Version 1 (Original)
 
-**macOS / Linux**
+Single-source behavioral event pipeline:
+
+Raw:
+- `events.jsonl`
+- `users.csv`
+
+Warehouse:
+- `fact_events`
+- `dim_users`
+- `dim_dates`
+- `dim_event_types`
+
+Analytics:
+- Daily Active Users (DAU)
+- Revenue
+- Event counts
+- Funnel conversion
+
+---
+
+## Version 2 (Upgrade)
+
+Expanded to support:
+
+### International Sales Dataset (Kaggle-style ingestion)
+
+New fact table:
+
+- `fact_international_sales`
+
+New dimensions:
+
+- `dim_customers`
+- `dim_products`
+
+New analytics export:
+
+- **International Revenue by Day**
+
+---
+
+# Star Schema (Current Warehouse)
+
+Fact Tables:
+- `fact_events`
+- `fact_international_sales`
+
+Dimensions:
+- `dim_users`
+- `dim_event_types`
+- `dim_dates`
+- `dim_customers`
+- `dim_products`
+
+Indexes added on:
+- Event date
+- User ID
+- Event type
+- Foreign keys
+
+---
+
+# Analytics Outputs
+
+Running:
+
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-**Windows (PowerShell)**
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-**Windows (Git Bash)**
-```bash
-python -m venv .venv
-source .venv/Scripts/activate
-pip install -r requirements.txt
-```
-
-### 2) Run the pipeline
-```bash
-python -m pipeline.run_pipeline
-```
-
-Outputs:
-- `data/output/warehouse.db`
-- `data/output/bad_records.jsonl`
-- `data/output/exports/*.csv`
-
-### 3) Run example SQL queries
-```bash
-python -m pipeline.run_queries
-```
-
-### 4) Run tests
-```bash
-pytest -q
-```
-
-## Repo structure
-```
-jde-etl-demo/
-  data/
-    raw/
-      events.jsonl
-      users.csv
-    output/
-      warehouse.db
-      exports/
-  pipeline/
-    ingest.py
-    transform.py
-    load.py
-    run_pipeline.py
-    run_queries.py
-  sql/
-    analytics_queries.sql
-  tests/
-    test_transform.py
-  .github/workflows/
-    ci.yml
-```
-
-## “Cloud mapping” (conceptual)
-
-Local component → Typical AWS equivalent
-
-- `data/raw/*` → **S3**
-- `pipeline/*.py` → **Glue job** (Spark or Python shell) / **Lambda** for small tasks
-- `data/output/warehouse.db` → **Redshift** / **Snowflake**
-- `logs + counts` → **CloudWatch Logs + Metrics**
-=======
-# data-engineering-etl-demo
-Runnable end-to-end ETL pipeline demonstrating data ingestion, validation, transformation, star-schema modeling, analytics queries, and testing.
->>>>>>> b46be3c7a46d28f561d3eeb46908cf01ecb6cd0e
+python -m pipeline.run_analytics
